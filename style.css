@@ -160,42 +160,66 @@ h2 { font-size: 1.28rem; }
 .status-badge.warning { background: rgba(200, 139, 45, 0.16); color: var(--amber); }
 .status-badge.danger { background: rgba(200, 78, 78, 0.16); color: var(--red); }
 
-.db-display {
-  margin: 34px 0 18px;
-  font-size: clamp(4.6rem, 12vw, 8.6rem);
-  line-height: 0.9;
-  font-weight: 850;
-  letter-spacing: -0.08em;
+.sound-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 24px 0 14px;
+  flex-wrap: wrap;
+}
+
+.db-compact {
+  font-size: clamp(2.6rem, 7vw, 5rem);
+  line-height: 0.92;
+  font-weight: 900;
+  letter-spacing: -0.06em;
 }
 
 .unit {
-  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-size: clamp(1rem, 2.5vw, 1.55rem);
   color: var(--muted);
   letter-spacing: 0;
 }
 
-.meter-track {
-  height: 20px;
-  border-radius: 999px;
-  background: rgba(28, 43, 42, 0.08);
+.trend-note {
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 340px;
+  line-height: 1.6;
+}
+
+.waveform-wrap {
+  position: relative;
+  height: clamp(260px, 34vw, 390px);
+  border-radius: 24px;
+  background:
+    linear-gradient(rgba(28, 43, 42, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(28, 43, 42, 0.055) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.54);
+  background-size: 100% 25%, 12.5% 100%, auto;
+  border: 1px solid var(--line);
   overflow: hidden;
 }
 
-.meter-fill {
+.waveform-wrap canvas {
+  display: block;
+  width: 100%;
   height: 100%;
-  width: 0%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #4aa985, #c9a348, #c84e4e);
-  transition: width 0.12s linear;
 }
 
-.scale-row {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin-top: 8px;
+.wave-axis {
+  position: absolute;
+  color: rgba(28, 43, 42, 0.54);
+  font-size: 0.76rem;
+  font-weight: 700;
+  pointer-events: none;
 }
+
+.y-high { top: 10px; left: 14px; }
+.y-low { bottom: 28px; left: 14px; }
+.x-now { bottom: 9px; left: 14px; color: var(--green); }
+.x-past { bottom: 9px; right: 14px; }
 
 .note {
   color: var(--muted);
@@ -313,6 +337,8 @@ body.alarming .meter-card {
 
 @media (max-width: 860px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+  .sound-summary { align-items: flex-start; }
+  .waveform-wrap { height: 260px; }
   .brand-row { align-items: flex-start; }
   .brand-mark { width: 62px; height: 62px; border-radius: 18px; }
   .hero-card, .main-meter, .settings-card, .privacy-card, .event-card, .meaning-card { padding: 22px; }

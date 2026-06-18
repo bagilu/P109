@@ -31,20 +31,22 @@
           <span id="statusBadge" class="status-badge idle">尚未開始</span>
         </div>
 
-        <div class="db-display">
-          <span id="dbValue">--</span>
-          <span class="unit">dB*</span>
+        <div class="sound-summary">
+          <div class="db-compact">
+            <span id="dbValue">--</span>
+            <span class="unit">dB*</span>
+          </div>
+          <div class="trend-note">最新聲量從左側進入，約 <strong id="windowLabel">20</strong> 秒後移至右側。</div>
         </div>
-        <div class="meter-track" aria-label="音量條">
-          <div id="meterFill" class="meter-fill"></div>
+
+        <div class="waveform-wrap" aria-label="即時聲量波形圖">
+          <canvas id="waveCanvas" width="960" height="340"></canvas>
+          <div class="wave-axis y-high">100 dB</div>
+          <div class="wave-axis y-low">40 dB</div>
+          <div class="wave-axis x-now">現在</div>
+          <div class="wave-axis x-past">過去</div>
         </div>
-        <div class="scale-row">
-          <span>安靜</span>
-          <span>一般</span>
-          <span>偏高</span>
-          <span>過高</span>
-        </div>
-        <p class="note">* 網頁版顯示為近似分貝值；不同裝置麥克風可能需要校正。</p>
+        <p class="note">* 網頁版顯示為近似分貝值；不同裝置麥克風可能需要校正。紅色波段表示超過門檻。</p>
 
         <div class="action-row">
           <button id="startBtn" class="primary-btn">開始偵測</button>
@@ -70,6 +72,16 @@
         <label class="control-block">
           <span>警報冷卻時間：<strong id="cooldownLabel">10</strong> 秒</span>
           <input id="cooldownInput" type="range" min="3" max="30" value="10" />
+        </label>
+
+        <label class="control-block">
+          <span>提醒音量：<strong id="alarmVolumeLabel">70</strong>%</span>
+          <input id="alarmVolumeInput" type="range" min="0" max="100" value="70" />
+        </label>
+
+        <label class="control-block">
+          <span>波形時間窗：<strong id="waveWindowLabel">20</strong> 秒</span>
+          <input id="waveWindowInput" type="range" min="5" max="60" step="5" value="20" />
         </label>
 
         <label class="control-block">
