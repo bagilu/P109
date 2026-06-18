@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>P109 請小聲喔｜環境音量偵測與智慧提醒系統</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero-card">
+      <div class="brand-row">
+        <div class="brand-mark">P109</div>
+        <div>
+          <p class="eyebrow">Please Keep It Quiet</p>
+          <h1>請小聲喔</h1>
+        </div>
+      </div>
+      <p class="subtitle">環境音量偵測與智慧提醒系統</p>
+      <p class="english-subtitle">A Smart Sound-Level Detection and Alert System</p>
+      <p class="slogan">讓聲音被看見，讓空間更安靜。</p>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="meter-card main-meter">
+        <div class="meter-header">
+          <div>
+            <p class="card-label">Current Sound Level</p>
+            <h2>即時環境聲量</h2>
+          </div>
+          <span id="statusBadge" class="status-badge idle">尚未開始</span>
+        </div>
+
+        <div class="db-display">
+          <span id="dbValue">--</span>
+          <span class="unit">dB*</span>
+        </div>
+        <div class="meter-track" aria-label="音量條">
+          <div id="meterFill" class="meter-fill"></div>
+        </div>
+        <div class="scale-row">
+          <span>安靜</span>
+          <span>一般</span>
+          <span>偏高</span>
+          <span>過高</span>
+        </div>
+        <p class="note">* 網頁版顯示為近似分貝值；不同裝置麥克風可能需要校正。</p>
+
+        <div class="action-row">
+          <button id="startBtn" class="primary-btn">開始偵測</button>
+          <button id="stopBtn" class="secondary-btn" disabled>停止偵測</button>
+          <button id="testAlarmBtn" class="ghost-btn">測試提醒音</button>
+        </div>
+      </article>
+
+      <article class="settings-card">
+        <p class="card-label">Settings</p>
+        <h2>提醒設定</h2>
+
+        <label class="control-block">
+          <span>警戒門檻：<strong id="thresholdLabel">75</strong> dB</span>
+          <input id="thresholdInput" type="range" min="45" max="100" value="75" />
+        </label>
+
+        <label class="control-block">
+          <span>需連續超標：<strong id="durationLabel">3</strong> 秒</span>
+          <input id="durationInput" type="range" min="1" max="10" value="3" />
+        </label>
+
+        <label class="control-block">
+          <span>警報冷卻時間：<strong id="cooldownLabel">10</strong> 秒</span>
+          <input id="cooldownInput" type="range" min="3" max="30" value="10" />
+        </label>
+
+        <label class="control-block">
+          <span>顯示校正值：<strong id="calibrationLabel">0</strong> dB</span>
+          <input id="calibrationInput" type="range" min="-20" max="20" value="0" />
+        </label>
+      </article>
+
+      <article class="privacy-card">
+        <p class="card-label">Privacy by Design</p>
+        <h2>隱私設計</h2>
+        <ul>
+          <li>只偵測環境聲量強度。</li>
+          <li>不錄音、不儲存音檔。</li>
+          <li>不進行語音辨識。</li>
+          <li>不辨識說話者身分。</li>
+          <li>事件紀錄只保存時間、最高聲量與持續秒數。</li>
+        </ul>
+      </article>
+
+      <article class="event-card">
+        <div class="event-header">
+          <div>
+            <p class="card-label">Event Log</p>
+            <h2>超標事件紀錄</h2>
+          </div>
+          <button id="clearLogBtn" class="small-btn">清除</button>
+        </div>
+        <div id="eventLog" class="event-log">
+          <p class="empty-log">尚無超標事件。</p>
+        </div>
+      </article>
+
+      <article class="meaning-card">
+        <p class="card-label">Management Meaning</p>
+        <h2>管理意涵</h2>
+        <p>
+          環境聲量不只是噪音問題，也會影響生活品質、工作品質、學習專注與公共空間舒適度。
+          P109 將聲量轉換為可觀察、可提醒、可記錄的管理資料，協助空間使用者共同維護更舒適的環境。
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <div id="alarmOverlay" class="alarm-overlay" aria-live="assertive">
+    <div class="alarm-box">
+      <p class="alarm-title">音量過高</p>
+      <p>請小聲喔，讓空間更舒服。</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
