@@ -10,14 +10,16 @@ const waveCanvas = document.getElementById('waveCanvas');
 const waveCtx = waveCanvas.getContext('2d');
 
 const thresholdInput = document.getElementById('thresholdInput');
-const durationInput = document.getElementById('durationInput');
+const alertWindowInput = document.getElementById('alertWindowInput');
+const overRatioInput = document.getElementById('overRatioInput');
 const cooldownInput = document.getElementById('cooldownInput');
 const alarmVolumeInput = document.getElementById('alarmVolumeInput');
 const waveWindowInput = document.getElementById('waveWindowInput');
 const calibrationInput = document.getElementById('calibrationInput');
 
 const thresholdLabel = document.getElementById('thresholdLabel');
-const durationLabel = document.getElementById('durationLabel');
+const alertWindowLabel = document.getElementById('alertWindowLabel');
+const overRatioLabel = document.getElementById('overRatioLabel');
 const cooldownLabel = document.getElementById('cooldownLabel');
 const alarmVolumeLabel = document.getElementById('alarmVolumeLabel');
 const waveWindowLabel = document.getElementById('waveWindowLabel');
@@ -31,9 +33,8 @@ let microphoneStream;
 let source;
 let dataArray;
 let rafId;
-let aboveSince = null;
-let eventPeak = 0;
 let lastAlarmAt = 0;
+let cumulativeState = false;
 let alarmTimer = null;
 let isRunning = false;
 let soundHistory = [];
@@ -46,7 +47,8 @@ const SAMPLE_INTERVAL_MS = 100;
 
 const updateLabels = () => {
   thresholdLabel.textContent = thresholdInput.value;
-  durationLabel.textContent = durationInput.value;
+  alertWindowLabel.textContent = alertWindowInput.value;
+  overRatioLabel.textContent = overRatioInput.value;
   cooldownLabel.textContent = cooldownInput.value;
   alarmVolumeLabel.textContent = alarmVolumeInput.value;
   waveWindowLabel.textContent = waveWindowInput.value;
@@ -55,7 +57,7 @@ const updateLabels = () => {
   drawWaveform();
 };
 
-[thresholdInput, durationInput, cooldownInput, alarmVolumeInput, waveWindowInput, calibrationInput].forEach(input => {
+[thresholdInput, alertWindowInput, overRatioInput, cooldownInput, alarmVolumeInput, waveWindowInput, calibrationInput].forEach(input => {
   input.addEventListener('input', updateLabels);
 });
 updateLabels();
@@ -139,14 +141,14 @@ function monitorLoop(timestamp = performance.now()) {
   const rms = Math.sqrt(sum / dataArray.length);
   const db = approximateDb(rms);
   latestDb = db;
-  updateMeter(db);
-  evaluateThreshold(db);
 
   if (timestamp - lastSampleAt >= SAMPLE_INTERVAL_MS) {
     addWaveSample(db);
+    evaluateThreshold();
     lastSampleAt = timestamp;
   }
 
+  updateMeter(db);
   drawWaveform();
   rafId = requestAnimationFrame(monitorLoop);
 }
@@ -155,8 +157,10 @@ function updateMeter(db) {
   dbValue.textContent = Math.round(db);
   const threshold = Number(thresholdInput.value);
 
-  if (db >= threshold) {
-    setStatus('warning', '超過門檻');
+  if (cumulativeState) {
+    setStatus('danger', '累積超標');
+  } else if (db >= threshold) {
+    setStatus('warning', '瞬間超標');
   } else if (db >= Math.max(0, threshold - 10)) {
     setStatus('warning', '接近門檻');
   } else {
@@ -164,28 +168,32 @@ function updateMeter(db) {
   }
 }
 
-function evaluateThreshold(db) {
+function evaluateThreshold() {
   const threshold = Number(thresholdInput.value);
-  const requiredMs = Number(durationInput.value) * 1000;
+  const alertWindowMs = Number(alertWindowInput.value) * 1000;
+  const requiredRatio = Number(overRatioInput.value) / 100;
   const cooldownMs = Number(cooldownInput.value) * 1000;
   const now = Date.now();
 
-  if (db >= threshold) {
-    if (!aboveSince) {
-      aboveSince = now;
-      eventPeak = db;
-    }
-    eventPeak = Math.max(eventPeak, db);
+  const recentSamples = soundHistory.filter(sample => now - sample.t <= alertWindowMs);
+  if (recentSamples.length < 5) {
+    cumulativeState = false;
+    return;
+  }
 
-    if (now - aboveSince >= requiredMs && now - lastAlarmAt >= cooldownMs) {
-      lastAlarmAt = now;
-      triggerAlarm(eventPeak, now - aboveSince);
-      aboveSince = now;
-      eventPeak = db;
-    }
-  } else {
-    aboveSince = null;
-    eventPeak = 0;
+  const overSamples = recentSamples.filter(sample => sample.db >= threshold);
+  const overRatio = overSamples.length / recentSamples.length;
+  cumulativeState = overRatio >= requiredRatio;
+
+  if (cumulativeState && now - lastAlarmAt >= cooldownMs) {
+    lastAlarmAt = now;
+    const peakDb = Math.max(...recentSamples.map(sample => sample.db));
+    triggerAlarm(peakDb, {
+      windowSeconds: Number(alertWindowInput.value),
+      overRatio,
+      overCount: overSamples.length,
+      totalCount: recentSamples.length
+    });
   }
 }
 
@@ -294,10 +302,10 @@ function drawWaveform() {
   waveCtx.fill();
 }
 
-function triggerAlarm(peakDb, durationMs) {
+function triggerAlarm(peakDb, alertStats) {
   playAlarmSound();
   showAlarmVisual();
-  addLogItem(peakDb, durationMs);
+  addLogItem(peakDb, alertStats);
 }
 
 function showAlarmVisual() {
@@ -354,17 +362,17 @@ async function playAlarmSound() {
   }
 }
 
-function addLogItem(peakDb, durationMs) {
+function addLogItem(peakDb, alertStats) {
   const empty = eventLog.querySelector('.empty-log');
   if (empty) empty.remove();
 
   const item = document.createElement('div');
   item.className = 'log-item';
   const time = new Date().toLocaleString('zh-TW', { hour12: false });
-  const seconds = Math.max(1, Math.round(durationMs / 1000));
+  const ratioText = Math.round(alertStats.overRatio * 100);
   item.innerHTML = `
     <strong>${time}</strong>
-    <p>最高聲量約 ${Math.round(peakDb)} dB，連續超標約 ${seconds} 秒。</p>
+    <p>最高聲量約 ${Math.round(peakDb)} dB；最近 ${alertStats.windowSeconds} 秒內，超標比例約 ${ratioText}%（${alertStats.overCount}/${alertStats.totalCount} 筆）。</p>
   `;
   eventLog.prepend(item);
 }

@@ -36,7 +36,7 @@
             <span id="dbValue">--</span>
             <span class="unit">dB*</span>
           </div>
-          <div class="trend-note">最新聲量從左側進入，約 <strong id="windowLabel">20</strong> 秒後移至右側。</div>
+          <div class="trend-note">最新聲量從左側進入，約 <strong id="windowLabel">20</strong> 秒後移至右側。提醒採「時間窗內累積超標比例」判斷。</div>
         </div>
 
         <div class="waveform-wrap" aria-label="即時聲量波形圖">
@@ -65,13 +65,18 @@
         </label>
 
         <label class="control-block">
-          <span>需連續超標：<strong id="durationLabel">3</strong> 秒</span>
-          <input id="durationInput" type="range" min="1" max="10" value="3" />
+          <span>觀察時間窗：<strong id="alertWindowLabel">15</strong> 秒</span>
+          <input id="alertWindowInput" type="range" min="5" max="30" step="5" value="15" />
         </label>
 
         <label class="control-block">
-          <span>警報冷卻時間：<strong id="cooldownLabel">10</strong> 秒</span>
-          <input id="cooldownInput" type="range" min="3" max="30" value="10" />
+          <span>超標比例：<strong id="overRatioLabel">30</strong>%</span>
+          <input id="overRatioInput" type="range" min="10" max="80" step="5" value="30" />
+        </label>
+
+        <label class="control-block">
+          <span>警報冷卻時間：<strong id="cooldownLabel">15</strong> 秒</span>
+          <input id="cooldownInput" type="range" min="3" max="60" value="15" />
         </label>
 
         <label class="control-block">
@@ -98,7 +103,7 @@
           <li>不錄音、不儲存音檔。</li>
           <li>不進行語音辨識。</li>
           <li>不辨識說話者身分。</li>
-          <li>事件紀錄只保存時間、最高聲量與持續秒數。</li>
+          <li>事件紀錄只保存時間、最高聲量、觀察時間窗與超標比例。</li>
         </ul>
       </article>
 
